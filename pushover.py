@@ -74,8 +74,7 @@ def show_notification(chan, message):
     PUSHOVER_USER = weechat.config_get_plugin("user")
     PUSHOVER_API_SECRET = weechat.config_get_plugin("token")
     if PUSHOVER_USER != "" and PUSHOVER_API_SECRET != "":
-        url = "https://api.pushover.net/1/messages.json"
         message = urllib.quote_plus(message)
-        os.system("curl -s -d token=" + PUSHOVER_API_SECRET + " -d user=" + PUSHOVER_USER + " -d message=" + message + " -d title='weechat: " + chan + "' https://api.pushover.net/1/messages.json > /home/ccm/weechat.log")
+        os.system("curl -s -d token=" + PUSHOVER_API_SECRET + " -d user=" + PUSHOVER_USER + " -d message=" + message + " -d title='weechat: " + chan + "' https://api.pushover.net/1/messages.json")
 
 # vim: autoindent expandtab smarttab shiftwidth=4
