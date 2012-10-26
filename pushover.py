@@ -38,7 +38,7 @@
 
 import weechat, string, os, urllib
 
-weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.1", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and highligts.", "", "")
+weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.1", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
 
 settings = {
     "user": "",
