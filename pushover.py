@@ -16,13 +16,14 @@
 #
 # 1. Register an account at http://pushover.net
 # 2. Create a new application at https://pushover.net/apps/build
-# 3. Note the "token" for your new application
-# 4. From the Dashboard at https://pushover.net note your "User key"
-# 5. put "pushover.py" to ~/.weechat/python
-# 6. start the plugin with "/python load pushover.py"
-# 7. Set user key and token by
-#     /set plugins.var.python.pushover.user USERKEY
-#     /set plugins.var.python.pushover.token TOKEN 
+# 3. Note the "token" for your new application (referenced as TOKEN later on)
+# 4. From the Dashboard at https://pushover.net note your "User key" (referenced as USERKEY later on)
+# 5. Install the pushover app on your iPhone/Android and login
+# 6. put "pushover.py" to ~/.weechat/python
+# 7. start the plugin with "/python load pushover.py"
+# 8. Set user key and token by doing
+# 9. /set plugins.var.python.pushover.user USERKEY
+# 10. /set plugins.var.python.pushover.token TOKEN 
 #
 # On security: This plugin does not use end-to-end-encryption. Please see
 # the security related FAQ at pushover.net for details
