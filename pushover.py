@@ -35,10 +35,12 @@
 #     version 0.1: merge notify.py and notifo_notify.py in order to avoid
 #                  sending notifications when channel or private buffer is
 #                  already opened
+# 2013-06-27, au <ccm@screenage.de>:
+#     version 0.2: replace blocking curl call
 
-import weechat, string, os, urllib
+import weechat, string, os, urllib, urllib2
 
-weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.1", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
+weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.2", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
 
 settings = {
     "user": "",
@@ -57,24 +59,31 @@ weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
 def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
         ishilight, prefix, message):
 
-    #if ((bufferp == weechat.current_buffer()) & (weechat.config_get_plugin("show_active_buffer")!="1")):  
-    #    pass
+    #get local nick for buffer
+    mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
-    if weechat.buffer_get_string(bufferp, "localvar_type") == "private":
-        show_notification(prefix, message)
+    # only notify if the message was not sent by myself
+    if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
+            show_notification(prefix, prefix, message)
 
     elif ishilight == "1":
         buffer = (weechat.buffer_get_string(bufferp, "short_name") or
                 weechat.buffer_get_string(bufferp, "name"))
-        show_notification(buffer, prefix + ": " + message)
+        show_notification(buffer, prefix, message)
 
     return weechat.WEECHAT_RC_OK
 
-def show_notification(chan, message):
+def show_notification(chan, nick, message):
     PUSHOVER_USER = weechat.config_get_plugin("user")
     PUSHOVER_API_SECRET = weechat.config_get_plugin("token")
     if PUSHOVER_USER != "" and PUSHOVER_API_SECRET != "":
-        message = urllib.quote_plus(message)
-        os.system("curl -s -d token=" + PUSHOVER_API_SECRET + " -d user=" + PUSHOVER_USER + " -d message=" + message + " -d title='weechat: " + chan + "' https://api.pushover.net/1/messages.json")
+        url = "https://api.pushover.net/1/messages.json"
+        message = '<'+nick+'> '+message
+        postdata = urllib.urlencode({'token':PUSHOVER_API_SECRET,'user':PUSHOVER_USER,'message':message,'title':'weechat: '+chan})
+        version = weechat.info_get("version_number", "") or 0
+        if int(version) >= 0x00030700: # use weechat.hook_process_hashtable only with weechat version >= 0.3.7
+          hook1 = weechat.hook_process_hashtable("url:"+url, { "postfields":  postdata}, 2000, "", "")
+        else:
+          urllib2.urlopen(url,postdata)
 
 # vim: autoindent expandtab smarttab shiftwidth=4
