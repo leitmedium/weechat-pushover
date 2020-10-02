@@ -3,7 +3,7 @@
 # Derived from: notifo
 #   Author: ochameau <poirot.alex AT gmail DOT com>
 #   Homepage: https://github.com/ochameau/weechat-notifo
-# An from: notify
+# And from: notify
 #   Author: lavaramano <lavaramano AT gmail DOT com>
 #   Improved by: BaSh - <bash.lnx AT gmail DOT com>
 #   Ported to Weechat 0.3.0 by: Sharn - <sharntehnub AT gmail DOT com)
@@ -38,11 +38,12 @@
 # 2013-06-27, au <ccm@screenage.de>:
 #     version 0.2: replace blocking curl call
 # 2020-09-02, au <ccm@screenage.de>:
-#     version 0.3: update to python3 (replace urllib2 with new urllib structure)
+#     version 0.3: update to python3 (replace urllib2 with new urllib)
+#                  fix minor code glitches with python 3
 
-import weechat, string, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
+import weechat, string, os, http.client, urllib
 
-weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.2", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
+weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.3", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
 
 settings = {
     "user": "",
@@ -55,20 +56,19 @@ for option, default_value in list(settings.items()):
         weechat.prnt("", "pushover: /set plugins.var.python.pushover.%s STRING" % option)
 
 # Hook privmsg/hilights
-weechat.hook_print("", "irc_privmsg", "", 1, "notify_show", "")
+weechat.hook_print('', '','', 1, 'notify_show', '')
 
 # Functions
-def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed,
-        ishilight, prefix, message):
+def notify_show(data, bufferp, uber_empty, tagsn, isdisplayed, ishilight, prefix, message):
 
     #get local nick for buffer
     mynick = weechat.buffer_get_string(bufferp,"localvar_nick")
 
-    # only notify if the message was not sent by myself
+    # only notify if the private message was not sent by myself
     if (weechat.buffer_get_string(bufferp, "localvar_type") == "private") and (prefix!=mynick):
             show_notification(prefix, prefix, message)
 
-    elif ishilight == "1":
+    elif ishilight:
         buffer = (weechat.buffer_get_string(bufferp, "short_name") or
                 weechat.buffer_get_string(bufferp, "name"))
         show_notification(buffer, prefix, message)
@@ -79,13 +79,11 @@ def show_notification(chan, nick, message):
     PUSHOVER_USER = weechat.config_get_plugin("user")
     PUSHOVER_API_SECRET = weechat.config_get_plugin("token")
     if PUSHOVER_USER != "" and PUSHOVER_API_SECRET != "":
-        url = "https://api.pushover.net/1/messages.json"
-        message = '<'+nick+'> '+message
-        postdata = urllib.parse.urlencode({'token':PUSHOVER_API_SECRET,'user':PUSHOVER_USER,'message':message,'title':'weechat: '+chan})
-        version = weechat.info_get("version_number", "") or 0
-        if int(version) >= 0x00030700: # use weechat.hook_process_hashtable only with weechat version >= 0.3.7
-          hook1 = weechat.hook_process_hashtable("url:"+url, { "postfields":  postdata}, 2000, "", "")
-        else:
-          urllib.request.urlopen(url,postdata)
-
-# vim: autoindent expandtab smarttab shiftwidth=4
+        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
+            urllib.parse.urlencode({
+                "token": PUSHOVER_API_SECRET,
+                "user": PUSHOVER_USER,
+                "title":'weechat: '+chan,
+                "message": '<'+nick+'> '+message,
+        }), { "Content-type": "application/x-www-form-urlencoded" })
