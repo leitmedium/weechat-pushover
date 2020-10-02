@@ -16,14 +16,13 @@ In order to use the plugin you need to take the following steps:
 7. start the plugin with "/python load pushover.py"
 8. Set user key and token by doing
 9. /set plugins.var.python.pushover.user USERKEY
-10. /set plugins.var.python.pushover.token TOKEN 
+10. /set plugins.var.python.pushover.token TOKEN
 
 ## Todo
 
-1. Get rid of curl dependency and use python itself to do the http call (non-blocking).
-2. Make it configurable to notify about current window or not.
-3. Make it configurable to notify only while being in away mode.
-4. Make it configurable to send more details (e.g. local timestamp).
+1. Make it configurable to notify about current window or not.
+2. Make it configurable to notify only while being in away mode.
+3. Make it configurable to send more details (e.g. local timestamp).
 
 ## Security
 

@@ -23,12 +23,12 @@
 # 7. start the plugin with "/python load pushover.py"
 # 8. Set user key and token by doing
 # 9. /set plugins.var.python.pushover.user USERKEY
-# 10. /set plugins.var.python.pushover.token TOKEN 
+# 10. /set plugins.var.python.pushover.token TOKEN
 #
 # On security: This plugin does not use end-to-end-encryption. Please see
 # the security related FAQ at pushover.net for details
 #
-# Requires Weechat 0.3.0, curl
+# Requires Weechat 0.3.0
 # Released under GNU GPL v2, see LICENSE file for details
 #
 # 2012-10-26, au <poirot.alex@gmail.com>:
@@ -37,8 +37,10 @@
 #                  already opened
 # 2013-06-27, au <ccm@screenage.de>:
 #     version 0.2: replace blocking curl call
+# 2020-09-02, au <ccm@screenage.de>:
+#     version 0.3: update to python3 (replace urllib2 with new urllib structure)
 
-import weechat, string, os, urllib, urllib2
+import weechat, string, os, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 
 weechat.register("pushover", "Caspar Clemens Mierau <ccm@screenage.de>", "0.2", "GPL", "pushover: Send push notifications to you iPhone/Android about your private message and hiligts.", "", "")
 
@@ -47,7 +49,7 @@ settings = {
     "token": "",
 }
 
-for option, default_value in settings.items():
+for option, default_value in list(settings.items()):
     if weechat.config_get_plugin(option) == "":
         weechat.prnt("", weechat.prefix("error") + "pushover: Please set option: %s" % option)
         weechat.prnt("", "pushover: /set plugins.var.python.pushover.%s STRING" % option)
@@ -79,11 +81,11 @@ def show_notification(chan, nick, message):
     if PUSHOVER_USER != "" and PUSHOVER_API_SECRET != "":
         url = "https://api.pushover.net/1/messages.json"
         message = '<'+nick+'> '+message
-        postdata = urllib.urlencode({'token':PUSHOVER_API_SECRET,'user':PUSHOVER_USER,'message':message,'title':'weechat: '+chan})
+        postdata = urllib.parse.urlencode({'token':PUSHOVER_API_SECRET,'user':PUSHOVER_USER,'message':message,'title':'weechat: '+chan})
         version = weechat.info_get("version_number", "") or 0
         if int(version) >= 0x00030700: # use weechat.hook_process_hashtable only with weechat version >= 0.3.7
           hook1 = weechat.hook_process_hashtable("url:"+url, { "postfields":  postdata}, 2000, "", "")
         else:
-          urllib2.urlopen(url,postdata)
+          urllib.request.urlopen(url,postdata)
 
 # vim: autoindent expandtab smarttab shiftwidth=4
